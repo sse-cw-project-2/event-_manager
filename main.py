@@ -272,7 +272,7 @@ def get_events_for_attendee(attendee_id):
 
 
 @functions_framework.http
-def api_create_event():
+def api_create_event(request):
     request_data = request.json
     success, message = create_event(request_data)
     if success:
@@ -282,7 +282,7 @@ def api_create_event():
 
 
 @functions_framework.http
-def api_update_event():
+def api_update_event(request):
     request_data = request.json
 
     event_id = request_data.get("event_id")
@@ -296,7 +296,7 @@ def api_update_event():
 
 
 @functions_framework.http
-def api_delete_event():
+def api_delete_event(request):
     request_data = request.json
     success, message = delete_event(request_data)
     if success:
@@ -306,7 +306,7 @@ def api_delete_event():
 
 
 @functions_framework.http
-def api_get_event_info():
+def api_get_event_info(request):
     request_data = request.get_json()
 
     # Check a valid payload was received
