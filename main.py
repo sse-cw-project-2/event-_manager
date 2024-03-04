@@ -269,7 +269,8 @@ def get_events_for_venue(request):
 
 def get_events_for_artist(request):
     """
-    Queries all events for a given artist from the 'events' table in the Supabase database using a request JSON structure.
+    Queries all events for a given artist from the 'events' table in the Supabase database using a request JSON
+        structure.
 
     Args:
         request (dict): A dictionary containing 'object_type' and 'identifier' as the artist_id.
