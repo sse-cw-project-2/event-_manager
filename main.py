@@ -43,7 +43,7 @@ attributes_schema = {
         "street_address",
         "city",
         "postcode",
-        "bio"
+        "bio",
     ],
     "artist": [
         "user_id",
@@ -54,7 +54,7 @@ attributes_schema = {
         "postcode",
         "genres",
         "spotify_artist_id",
-        "bio"
+        "bio",
     ],
     "attendee": [
         "user_id",
@@ -64,7 +64,7 @@ attributes_schema = {
         "street_address",
         "city",
         "postcode",
-        "bio"
+        "bio",
     ],
     "event": [
         "event_id",
@@ -75,14 +75,7 @@ attributes_schema = {
         "sold_tickets",
         "artist_ids",
     ],
-    "ticket": [
-        "ticket_id",
-        "event_id",
-        "attendee_id",
-        "price",
-        "redeemed",
-        "status"
-    ],
+    "ticket": ["ticket_id", "event_id", "attendee_id", "price", "redeemed", "status"],
 }
 # Attribute keys are paired with boolean values for get requests, or the value to be added to the
 # database otherwise.
@@ -100,15 +93,11 @@ def create_event(request):
         tuple: (str, dict or str) indicating success (an event_id is returned) and either a success
             or error message.
     """
-    object_type = request["object_type"]
-    identifier = request["identifier"]  # Created using venue_id for database relation
     attributes = request["attributes"]
     data_to_insert = {key: value for key, value in attributes.items()}
 
     try:
-        result, error = (
-            supabase.table("events").insert(data_to_insert).execute()
-        )
+        result, error = supabase.table("events").insert(data_to_insert).execute()
 
         result_key, result_value = result
         error_key, error_value = error
@@ -217,15 +206,18 @@ def get_event_info(request):
         A tuple containing a boolean indicating success, and either the event data for the specified
         attributes or an error message.
     """
-    object_type = request["object_type"]
     event_id = request["identifier"]
     attributes_to_check = request["attributes"]
 
     try:
         # Construct a list of attributes to select based on the boolean value
-        selected_attributes = ", ".join([attr for attr, include in attributes_to_check.items() if include])
+        selected_attributes = ", ".join(
+            [attr for attr, include in attributes_to_check.items() if include]
+        )
         if not selected_attributes:
-            selected_attributes = "*"  # Fallback to select all if no attributes are marked as True
+            selected_attributes = (
+                "*"  # Fallback to select all if no attributes are marked as True
+            )
 
         result = (
             supabase.table("events")
@@ -261,7 +253,7 @@ def get_events_for_venue(request):
         # Call the RPC function without requested_attributes
         result = supabase.rpc("get_events_for_venue", {"venue_user_id": venue_id})
 
-        if hasattr(result, 'error') and result.error:
+        if hasattr(result, "error") and result.error:
             return False, f"An error occurred while fetching events: {result.error}"
         elif not result.data:
             return False, "No events found for the provided venue ID."
@@ -288,7 +280,7 @@ def get_events_for_artist(request):
         # Call the RPC function with artist_id
         result = supabase.rpc("get_events_for_artist", {"artist_id": artist_id})
 
-        if hasattr(result, 'error') and result.error:
+        if hasattr(result, "error") and result.error:
             return False, f"An error occurred while fetching events: {result.error}"
         elif not result.data:
             return False, "No events found for the provided artist ID."
@@ -315,7 +307,7 @@ def get_events_for_attendee(request):
         # Call the RPC function with attendee_id
         result = supabase.rpc("get_events_for_attendee", {"attendee_id": attendee_id})
 
-        if hasattr(result, 'error') and result.error:
+        if hasattr(result, "error") and result.error:
             return False, f"An error occurred while fetching events: {result.error}"
         elif not result.data:
             return False, "No events found for the provided attendee ID."
@@ -342,7 +334,7 @@ def get_events_in_city(request):
         # Call the RPC function with city_name
         result = supabase.rpc("get_events_in_city", {"city_name": city_name})
 
-        if hasattr(result, 'error') and result.error:
+        if hasattr(result, "error") and result.error:
             return False, f"An error occurred while fetching events: {result.error}"
         elif not result.data:
             return False, "No events found in the specified city."
@@ -361,6 +353,7 @@ def api_create_event(request):
     else:
         return jsonify({"error": message}), 400
 
+
 @functions_framework.http
 def api_update_event(request):
     request_data = request.json
@@ -374,6 +367,7 @@ def api_update_event(request):
     else:
         return jsonify({"error": message}), 400
 
+
 @functions_framework.http
 def api_delete_event(request):
     request_data = request.json
@@ -382,6 +376,7 @@ def api_delete_event(request):
         return jsonify({"message": message}), 200
     else:
         return jsonify({"error": message}), 400
+
 
 @functions_framework.http
 def api_get_event_info(request):
@@ -411,6 +406,7 @@ def api_get_event_info(request):
 
     return jsonify(result), 200
 
+
 @functions_framework.http
 def api_get_events_for_venue(request):
     request_data = request.json
@@ -419,6 +415,7 @@ def api_get_events_for_venue(request):
         return jsonify({"message": message}), 200
     else:
         return jsonify({"error": message}), 400
+
 
 @functions_framework.http
 def api_get_events_in_city(request):
@@ -429,6 +426,7 @@ def api_get_events_in_city(request):
     else:
         return jsonify({"error": message}), 400
 
+
 @functions_framework.http
 def api_get_events_for_artist(request):
     request_data = request.json
@@ -438,6 +436,7 @@ def api_get_events_for_artist(request):
     else:
         return jsonify({"error": message}), 400
 
+
 @functions_framework.http
 def api_get_events_for_attendee(request):
     request_data = request.json
@@ -446,6 +445,7 @@ def api_get_events_for_attendee(request):
         return jsonify({"message": message}), 200
     else:
         return jsonify({"error": message}), 400
+
 
 if __name__ == "__main__":
     app.run(debug=True)
