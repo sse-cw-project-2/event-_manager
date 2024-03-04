@@ -247,16 +247,24 @@ def get_events_for_venue(request):
 
     try:
         # Call the RPC function without requested_attributes
-        result = supabase.rpc("get_events_for_venue", {"venue_user_id": venue_id})
+        response = supabase.rpc(
+            "get_events_for_venue", {"venue_user_id": venue_id}
+        ).execute()
 
-        if hasattr(result, "error") and result.error:
-            return False, f"An error occurred while fetching events: {result.error}"
-        elif not result.data:
-            return False, "No events found for the provided venue ID."
+        if hasattr(response, "json"):
+            data = response.json()
+        elif hasattr(response, "data"):
+            data = response.data
         else:
-            return True, result.data
+            data = None
+
+        # Check if data was successfully parsed and contains events
+        if data:
+            return True, {"message": "Events found", "data": data}
+        else:
+            return False, {"message": "No events found", "data": []}
     except Exception as e:
-        return False, f"An exception occurred: {str(e)}"
+        return False, {"message": f"An API error occurred: {str(e)}", "data": []}
 
 
 def get_events_for_artist(request):
@@ -273,12 +281,14 @@ def get_events_for_artist(request):
 
     try:
         # Assuming the supabase.rpc() correctly calls the RPC function and returns a response object
-        response = supabase.rpc("get_events_for_artist", {"artist_id": artist_id}).execute()
+        response = supabase.rpc(
+            "get_events_for_artist", {"artist_id": artist_id}
+        ).execute()
 
-        if hasattr(response, 'json'):
-            data = response.json()  # If the response object has a .json() method
-        elif hasattr(response, 'data'):
-            data = response.data  # If the response object directly contains the data attribute
+        if hasattr(response, "json"):
+            data = response.json()
+        elif hasattr(response, "data"):
+            data = response.data
         else:
             data = None
 
@@ -307,16 +317,24 @@ def get_events_for_attendee(request):
 
     try:
         # Call the RPC function with attendee_id
-        result = supabase.rpc("get_events_for_attendee", {"attendee_id": attendee_id})
+        response = supabase.rpc(
+            "get_events_for_attendee", {"attendee_id": attendee_id}
+        ).execute()
 
-        if hasattr(result, "error") and result.error:
-            return False, f"An error occurred while fetching events: {result.error}"
-        elif not result.data:
-            return False, "No events found for the provided attendee ID."
+        if hasattr(response, "json"):
+            data = response.json()
+        elif hasattr(response, "data"):
+            data = response.data
         else:
-            return True, result.data
+            data = None
+
+        # Check if data was successfully parsed and contains events
+        if data:
+            return True, {"message": "Events found", "data": data}
+        else:
+            return False, {"message": "No events found", "data": []}
     except Exception as e:
-        return False, f"An exception occurred: {str(e)}"
+        return False, {"message": f"An API error occurred: {str(e)}", "data": []}
 
 
 def get_events_in_city(request):
@@ -454,5 +472,3 @@ def api_get_events_for_attendee(request):
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
