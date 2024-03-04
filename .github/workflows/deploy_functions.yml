@@ -138,14 +138,14 @@ jobs:
           --set-secrets=SUPABASE_URL=projects/950999785047/secrets/SUPABASE_URL:latest \
           --set-secrets=SUPABASE_KEY=projects/950999785047/secrets/SUPABASE_KEY:latest
 
-      - name: Deploy api_get_events_for_artists
+      - name: Deploy api_get_events_for_artist
         run: |
-          gcloud functions deploy api_get_events_for_artists \
+          gcloud functions deploy api_get_events_for_artist \
           --runtime python39 \
           --trigger-http \
           --allow-unauthenticated \
           --source . \
-          --entry-point api_get_events_for_artists \
+          --entry-point api_get_events_for_artist \
           --set-secrets=SUPABASE_URL=projects/950999785047/secrets/SUPABASE_URL:latest \
           --set-secrets=SUPABASE_KEY=projects/950999785047/secrets/SUPABASE_KEY:latest
 
