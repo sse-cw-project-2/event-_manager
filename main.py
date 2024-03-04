@@ -251,18 +251,15 @@ def get_events_for_venue(request):
             "get_events_for_venue", {"venue_user_id": venue_id}
         ).execute()
 
-        if hasattr(response, "json"):
-            data = response.json()
-        elif hasattr(response, "data"):
-            data = response.data
+        if hasattr(response, "data"):
+            # Check if 'data' is not empty
+            if response.data:
+                return True, {"message": "Events found", "data": response.data}
+            else:
+                return False, {"message": "No events found", "data": []}
         else:
-            data = None
-
-        # Check if data was successfully parsed and contains events
-        if data:
-            return True, {"message": "Events found", "data": data}
-        else:
-            return False, {"message": "No events found", "data": []}
+            # Handle the case where 'data' attribute is missing or response is not as expected
+            return False, {"message": "Unexpected response format", "data": []}
     except Exception as e:
         return False, {"message": f"An API error occurred: {str(e)}", "data": []}
 
@@ -286,18 +283,15 @@ def get_events_for_artist(request):
             "get_events_for_artist", {"artist_id": artist_id}
         ).execute()
 
-        if hasattr(response, "json"):
-            data = response.json()
-        elif hasattr(response, "data"):
-            data = response.data
+        if hasattr(response, "data"):
+            # Check if 'data' is not empty
+            if response.data:
+                return True, {"message": "Events found", "data": response.data}
+            else:
+                return False, {"message": "No events found", "data": []}
         else:
-            data = None
-
-        # Check if data was successfully parsed and contains events
-        if data:
-            return True, {"message": "Events found", "data": data}
-        else:
-            return False, {"message": "No events found", "data": []}
+            # Handle the case where 'data' attribute is missing or response is not as expected
+            return False, {"message": "Unexpected response format", "data": []}
     except Exception as e:
         return False, {"message": f"An API error occurred: {str(e)}", "data": []}
 
@@ -319,21 +313,19 @@ def get_events_for_attendee(request):
     try:
         # Call the RPC function with attendee_id
         response = supabase.rpc(
-            "get_events_for_attendee", {"attendee_id": attendee_id}
+            "get_events_for_attendee", {"_attendee_id": attendee_id}
         ).execute()
 
-        if hasattr(response, "json"):
-            data = response.json()
-        elif hasattr(response, "data"):
-            data = response.data
+        # Access the 'data' attribute directly from the SingleAPIResponse object
+        if hasattr(response, "data"):
+            # Check if 'data' is not empty
+            if response.data:
+                return True, {"message": "Events found", "data": response.data}
+            else:
+                return False, {"message": "No events found", "data": []}
         else:
-            data = None
-
-        # Check if data was successfully parsed and contains events
-        if data:
-            return True, {"message": "Events found", "data": data}
-        else:
-            return False, {"message": "No events found", "data": []}
+            # Handle the case where 'data' attribute is missing or response is not as expected
+            return False, {"message": "Unexpected response format", "data": []}
     except Exception as e:
         return False, {"message": f"An API error occurred: {str(e)}", "data": []}
 
@@ -354,16 +346,21 @@ def get_events_in_city(request):
 
     try:
         # Call the RPC function with city_name
-        result = supabase.rpc("get_events_in_city", {"city_name": city_name})
+        response = supabase.rpc(
+            "get_events_in_city", {"city_name": city_name}
+        ).execute()
 
-        if hasattr(result, "error") and result.error:
-            return False, f"An error occurred while fetching events: {result.error}"
-        elif not result.data:
-            return False, "No events found in the specified city."
+        if hasattr(response, "data"):
+            # Check if 'data' is not empty
+            if response.data:
+                return True, {"message": "Events found", "data": response.data}
+            else:
+                return False, {"message": "No events found", "data": []}
         else:
-            return True, result.data
+            # Handle the case where 'data' attribute is missing or response is not as expected
+            return False, {"message": "Unexpected response format", "data": []}
     except Exception as e:
-        return False, f"An exception occurred: {str(e)}"
+        return False, {"message": f"An API error occurred: {str(e)}", "data": []}
 
 
 @functions_framework.http
