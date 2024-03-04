@@ -276,7 +276,7 @@ def get_events_for_artist(request):
         A tuple containing a boolean indicating success, and either the list of events or an error message.
     """
     # Extract artist_id from request
-    artist_id = request.args.get("identifier")
+    artist_id = request["identifier"]
 
     try:
         # Call the RPC function with artist_id
@@ -433,7 +433,12 @@ def api_get_events_in_city(request):
 
 @functions_framework.http
 def api_get_events_for_artist(request):
-    request_data = request.json
+    identifier = request.args.get('identifier')
+    object_type = request.args.get('object_type')
+    request_data = {
+        "identifier": identifier,
+        "object_type": object_type
+    }
     success, message = get_events_for_artist(request_data)
     if success:
         return jsonify({"message": message}), 200
