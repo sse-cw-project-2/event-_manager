@@ -276,7 +276,7 @@ def get_events_for_artist(request):
         A tuple containing a boolean indicating success, and either the list of events or an error message.
     """
     # Extract artist_id from request
-    artist_id = request["identifier"]
+    artist_id = request.args.get("identifier")
 
     try:
         # Call the RPC function with artist_id
