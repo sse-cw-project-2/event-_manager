@@ -261,8 +261,7 @@ def get_events_for_venue(request):
 
 def get_events_for_artist(request):
     """
-    Queries all events for a given artist from the 'events' table in the Supabase database using a request JSON
-        structure.
+    Queries all events for a given artist from the 'events' table in the Supabase database using a request JSON structure.
 
     Args:
         request (dict): A dictionary containing 'object_type' and 'identifier' as the artist_id.
@@ -270,20 +269,22 @@ def get_events_for_artist(request):
     Returns:
         A tuple containing a boolean indicating success, and either the list of events or an error message.
     """
-    # Extract artist_id from request
     artist_id = request["identifier"]
 
     try:
-        # Call the RPC function with artist_id
-        result = supabase.rpc("get_events_for_artist", {"artist_id": artist_id})
+        # Assuming the supabase.rpc() correctly calls the RPC function and returns a response object
+        response = supabase.rpc("get_events_for_artist", {"artist_id": artist_id}).execute()
 
-        print(result)
+        if hasattr(response, 'json'):
+            data = response.json()  # If the response object has a .json() method
+        elif hasattr(response, 'data'):
+            data = response.data  # If the response object directly contains the data attribute
+        else:
+            data = None
 
-        if result.data:
-            return True, {
-                "message": "Events found",
-                "data": result.data[0],
-            }
+        # Check if data was successfully parsed and contains events
+        if data:
+            return True, {"message": "Events found", "data": data}
         else:
             return False, {"message": "No events found", "data": []}
     except Exception as e:
@@ -453,72 +454,5 @@ def api_get_events_for_attendee(request):
 
 if __name__ == "__main__":
     app.run(debug=True)
-    # create_req = {
-    #     "function": "create",
-    #     "object_type": "event",
-    #     "identifier": "1234345256345635",
-    #     "attributes": {
-    #         "venue_id": "1234345256345635",
-    #         "event_name": "Yaml sesh",
-    #         "date_time": "24 March 2024",
-    #         "total_tickets": 1,
-    #         "sold_tickets": 0,
-    #         "artist_ids": ["105165436154430421986"],
-    #     },
-    # }
-    # id, message = create_event(create_req)
-    # print(id)
-    # print(message)
-    #
-    # get_req = {
-    #     "function": "get",
-    #     "object_type": "event",
-    #     "identifier": id,
-    #     "attributes": {
-    #         "venue_id": True,
-    #         "event_name": True,
-    #         "date_time": True,
-    #         "total_tickets": True,
-    #         "sold_tickets": True,
-    #         "artist_ids": True,
-    #     },
-    # }
-    # success, message = get_event_info(get_req)
-    # print(success)
-    # print(message)
-    #
-    # update_req = {
-    #     "function": "update",
-    #     "object_type": "event",
-    #     "identifier": id,
-    #     "attributes": {
-    #         "venue_id": "1234345256345635",
-    #         "event_name": "Yaml sesh 2.0",
-    #         "date_time": "2024-03-25T02:05:00+00:00",
-    #         "total_tickets": 1,
-    #         "sold_tickets": 0,
-    #         "artist_ids": ["105165436154430421986"],
-    #     },
-    # }
-    # id, message = update_event(update_req)
-    # print(id)
-    # print(message)
-    #
-    # delete_req = {
-    #     "function": "delete",
-    #     "object_type": "event",
-    #     "identifier": id,
-    #     "attributes": {},
-    # }
-    # id, message = delete_event(update_req)
-    # print(id)
-    # print(message)
-    #
-    # get_artist_events_req = {
-    #     "function": "get",
-    #     "object_type": "event",
-    #     "identifier": "105165436154430421986",
-    # }
-    # success, message = get_events_for_artist(get_artist_events_req)
-    # print(id)
-    # print(message)
+
+
