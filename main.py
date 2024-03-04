@@ -208,7 +208,6 @@ def get_event_info(request):
     """
     event_id = request["identifier"]
     object_type = request["object_type"]
-    attributes_to_check = request["attributes"]
 
     attributes_to_fetch = [
         attr for attr, include in request.get("attributes", {}).items() if include
@@ -432,12 +431,9 @@ def api_get_events_in_city(request):
 
 @functions_framework.http
 def api_get_events_for_artist(request):
-    identifier = request.args.get('identifier')
-    object_type = request.args.get('object_type')
-    request_data = {
-        "identifier": identifier,
-        "object_type": object_type
-    }
+    identifier = request.args.get("identifier")
+    object_type = request.args.get("object_type")
+    request_data = {"identifier": identifier, "object_type": object_type}
     success, message = get_events_for_artist(request_data)
     if success:
         return jsonify({"message": message}), 200
@@ -526,5 +522,3 @@ if __name__ == "__main__":
     # success, message = get_events_for_artist(get_artist_events_req)
     # print(id)
     # print(message)
-
-
