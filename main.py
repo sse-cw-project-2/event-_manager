@@ -366,6 +366,10 @@ def get_events_in_city(request):
 @functions_framework.http
 def api_create_event(request):
     request_data = request.json
+
+    if "function" not in request_data or request_data["function"] != "create":
+        return jsonify({"error": "API only handles create requests"}), 400
+
     success, message = create_event(request_data)
     if success:
         return jsonify({"message": message}), 200
@@ -376,6 +380,9 @@ def api_create_event(request):
 @functions_framework.http
 def api_update_event(request):
     request_data = request.json
+
+    if "function" not in request_data or request_data["function"] != "update":
+        return jsonify({"error": "API only handles update requests"}), 400
 
     event_id = request_data.get("event_id")
     update_attributes = request_data.get("update_attributes")
@@ -390,6 +397,10 @@ def api_update_event(request):
 @functions_framework.http
 def api_delete_event(request):
     request_data = request.json
+
+    if "function" not in request_data or request_data["function"] != "delete":
+        return jsonify({"error": "API only handles delete requests"}), 400
+
     success, message = delete_event(request_data)
     if success:
         return jsonify({"message": message}), 200
@@ -405,6 +416,9 @@ def api_get_event_info(request):
     if not request_data:
         return jsonify({"error": "Invalid or missing JSON payload"}), 400
 
+    if "function" not in request_data or request_data["function"] != "get":
+        return jsonify({"error": "API only handles get requests"}), 400
+
     event_id = request_data.get("event_id")
     attributes = request_data.get("attributes")
 
@@ -413,7 +427,6 @@ def api_get_event_info(request):
 
     # Handle outcomes
     if "error" in result:
-        # Return 404 if account not found, or 500 for all other errors in reaching the database
         return (
             jsonify(result),
             (
