@@ -238,7 +238,8 @@ def get_event_info(request):
 
 def get_events_for_venue(request):
     """
-    Queries all events for a given venue from the 'events' table in the Supabase database using a request JSON structure.
+    Queries all events for a given venue from the 'events' table in the Supabase database using a request
+        JSON structure.
 
     Args:
         request (dict): A dictionary containing 'object_type', 'identifier' as the venue_id.
@@ -265,7 +266,8 @@ def get_events_for_venue(request):
 
 def get_events_for_artist(request):
     """
-    Queries all events for a given artist from the 'events' table in the Supabase database using a request JSON structure.
+    Queries all events for a given artist from the 'events' table in the Supabase database using a request JSON
+        structure.
 
     Args:
         request (dict): A dictionary containing 'object_type' and 'identifier' as the artist_id.
@@ -292,7 +294,8 @@ def get_events_for_artist(request):
 
 def get_events_for_attendee(request):
     """
-    Queries all events for a given attendee from the 'events' table in the Supabase database using a request JSON structure.
+    Queries all events for a given attendee from the 'events' table in the Supabase database using a request JSON
+        structure.
 
     Args:
         request (dict): A dictionary containing 'object_type', 'identifier' as the attendee_id.
@@ -319,7 +322,8 @@ def get_events_for_attendee(request):
 
 def get_events_in_city(request):
     """
-    Queries all events in a specified city from the 'events' table in the Supabase database using a request JSON structure.
+    Queries all events in a specified city from the 'events' table in the Supabase database using
+        a request JSON structure.
 
     Args:
         request (dict): A dictionary containing 'object_type' and 'identifier' as the city name.
