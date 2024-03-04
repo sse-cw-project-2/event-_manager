@@ -36,9 +36,36 @@ object_types = ["venue", "artist", "attendee", "event", "ticket"]
 account_types = [ot for ot in object_types if ot not in ["event", "ticket"]]
 non_account_types = [ot for ot in object_types if ot not in account_types]
 attributes_schema = {
-    "venue": ["user_id", "email", "username", "location"],
-    "artist": ["user_id", "email", "username", "genre"],
-    "attendee": ["user_id", "email", "username", "city"],
+    "venue": [
+        "user_id",
+        "venue_name",
+        "email",
+        "street_address",
+        "city",
+        "postcode",
+        "bio"
+    ],
+    "artist": [
+        "user_id",
+        "artist_name",
+        "email",
+        "street_address",
+        "city",
+        "postcode",
+        "genres",
+        "spotify_artist_id",
+        "bio"
+    ],
+    "attendee": [
+        "user_id",
+        "first_name",
+        "last_name",
+        "email",
+        "street_address",
+        "city",
+        "postcode",
+        "bio"
+    ],
     "event": [
         "event_id",
         "venue_id",
@@ -48,102 +75,161 @@ attributes_schema = {
         "sold_tickets",
         "artist_ids",
     ],
-    "ticket": ["ticket_id", "event_id", "attendee_id", "price", "redeemed"],
+    "ticket": [
+        "ticket_id",
+        "event_id",
+        "attendee_id",
+        "price",
+        "redeemed",
+        "status"
+    ],
 }
 # Attribute keys are paired with boolean values for get requests, or the value to be added to the
 # database otherwise.
 request_template = ["function", "object_type", "identifier", "attributes"]
-# Event identifier is the venue for create requests
 
 
-# # def validate_request(request):
-
-
-def create_event(attributes):
+def create_event(request):
     """
     Inserts an event into the Supabase 'events' table.
 
     Args:
-        attributes (dict): The attributes of the event to be created.
+        request: A dictionary containing 'object_type', 'identifier', and 'attributes'.
 
     Returns:
-        tuple: (bool, dict or str) indicating success and the data returned by the database or an
-            error message.
+        tuple: (str, dict or str) indicating success (an event_id is returned) and either a success
+            or error message.
     """
+    object_type = request["object_type"]
+    identifier = request["identifier"]  # Created using venue_id for database relation
+    attributes = request["attributes"]
+    data_to_insert = {key: value for key, value in attributes.items()}
+
     try:
-        result = supabase.table("events").insert(attributes).execute()
+        result, error = (
+            supabase.table("events").insert(data_to_insert).execute()
+        )
 
-        if result.error:
-            return False, f"An error occurred: {result.error}"
-        return True, result.data
+        result_key, result_value = result
+        error_key, error_value = error
+
+        # Check the content of the 'result' tuple
+        if result_key == "data" and result_value:
+            event_id = result_value[0].get("event_id")
+            return event_id, "Event creation was successful."
+        elif error_value:
+            return None, f"An error occurred: {error_value}"
+        else:
+            return None, "Unexpected response: No data returned after insert."
     except Exception as e:
-        return False, f"An exception occurred: {str(e)}"
+        return None, f"An exception occurred: {str(e)}"
 
 
-def update_event(event_id, update_attributes):
+def update_event(request):
     """
     Updates an event in the 'events' table in the Supabase database.
 
     Args:
-        event_id (str): The unique identifier for the event to be updated.
-        update_attributes (dict): A dictionary of attributes to update with their new values.
+        request: A dictionary containing 'object_type', 'identifier', and 'attributes'.
 
     Returns:
         A tuple containing a boolean indicating success and a message or data.
     """
-    try:
-        result = (
-            supabase.table("events")
-            .update(update_attributes)
-            .eq("event_id", event_id)
-            .execute()
-        )
+    object_type = request["object_type"]
+    identifier = request["identifier"]  # Here this must be event_id
+    attributes = request["attributes"]
+    data_to_update = {
+        key: value for key, value in attributes.items() if value is not None
+    }
 
-        if result.error:
-            return False, f"An error occurred during the update: {result.error}"
+    if not data_to_update:
+        return False, "No valid attributes provided for update."
+
+    try:
+        query = (
+            supabase.table(object_type + "s")
+            .update(data_to_update)
+            .eq("event_id", identifier)
+        )
+        result, error = query.execute()
+
+        result_key, result_value = result
+        error_key, error_value = error
+
+        # Check the content of the 'result' tuple
+        if result_key == "data" and result_value:
+            # Check if any attributes have been updated
+            updated_attributes = result_value[0]
+            for key, value in attributes.items():
+                if key in updated_attributes and updated_attributes[key] != value:
+                    return False, f"Failed to update {key} attribute."
+            return True, "Event updated successfully."
+        elif error_value:
+            return False, f"An error occurred: {error_value}"
         else:
-            return True, "Event update was successful."
+            return False, "Unexpected response: No data returned after update."
     except Exception as e:
         return False, f"An exception occurred: {str(e)}"
 
 
-def delete_event(event_id):
+def delete_event(request):
     """
     Deletes an event from the 'events' table in the Supabase database.
 
     Args:
-        event_id (str): The unique identifier for the event to be deleted.
+        request: A dictionary containing 'object_type', 'identifier'.
 
     Returns:
         A tuple containing a boolean indicating success and a message.
     """
-    try:
-        result = supabase.table("events").delete().eq("event_id", event_id).execute()
+    object_type = request["object_type"]
+    identifier = request["identifier"]  # Here this must be event_id
 
-        if result.error:
-            return False, f"An error occurred during the deletion: {result.error}"
-        else:
+    try:
+        # Delete the record from the specified table
+        result = (
+            supabase.table(object_type + "s")
+            .delete()
+            .eq("event_id", identifier)
+            .execute()
+        )
+
+        # Assuming result.data contains the number of deleted rows
+        if result.data:
             return True, "Event deletion was successful."
+        else:
+            return False, "Event not found or already deleted."
     except Exception as e:
         return False, f"An exception occurred: {str(e)}"
 
 
-def get_event_info(event_id, requested_attributes):
+def get_event_info(request):
     """
-    Retrieves information for a specific event from the 'events' table in the Supabase database.
+    Retrieves specific information for an event from the 'events' table in the Supabase database
+    based on a request structure that includes an event ID and attributes marked as True for retrieval.
 
     Args:
-        event_id (str): The unique identifier for the event.
-        requested_attributes (list): A list of attributes to return for each event.
+        request (dict): A dictionary containing 'object_type', 'identifier', and 'attributes' where
+                        'attributes' is a dict with keys as attribute names and boolean values indicating
+                        whether to retrieve them.
 
     Returns:
-        A tuple containing a boolean indicating success, and either the event data or an error message.
+        A tuple containing a boolean indicating success, and either the event data for the specified
+        attributes or an error message.
     """
+    object_type = request["object_type"]
+    event_id = request["identifier"]
+    attributes_to_check = request["attributes"]
+
     try:
-        select_query = ", ".join(requested_attributes) if requested_attributes else "*"
+        # Construct a list of attributes to select based on the boolean value
+        selected_attributes = ", ".join([attr for attr, include in attributes_to_check.items() if include])
+        if not selected_attributes:
+            selected_attributes = "*"  # Fallback to select all if no attributes are marked as True
+
         result = (
             supabase.table("events")
-            .select(select_query)
+            .select(selected_attributes)
             .eq("event_id", event_id)
             .execute()
         )
@@ -158,117 +244,112 @@ def get_event_info(event_id, requested_attributes):
         return False, f"An exception occurred: {str(e)}"
 
 
-def get_events_for_venue(venue_id, requested_attributes):
+def get_events_for_venue(request):
     """
-    Queries events for a given venue from the 'events' table in the Supabase database.
+    Queries all events for a given venue from the 'events' table in the Supabase database using a request JSON structure.
 
     Args:
-        venue_id (str): The user_id for the venue.
-        requested_attributes (list): A list of attributes to return for each event.
+        request (dict): A dictionary containing 'object_type', 'identifier' as the venue_id.
 
     Returns:
         A tuple containing a boolean indicating success, and either the list of events or an error message.
     """
+    # Extract venue_id from request
+    venue_id = request["identifier"]
+
     try:
-        # Constructing the select query string
-        select_query = ", ".join(requested_attributes) if requested_attributes else "*"
+        # Call the RPC function without requested_attributes
+        result = supabase.rpc("get_events_for_venue", {"venue_user_id": venue_id})
 
-        result = (
-            supabase.table("events")
-            .select(select_query)
-            .eq("venue_id", venue_id)
-            .execute()
-        )
-
-        if result.error:
+        if hasattr(result, 'error') and result.error:
             return False, f"An error occurred while fetching events: {result.error}"
+        elif not result.data:
+            return False, "No events found for the provided venue ID."
         else:
             return True, result.data
     except Exception as e:
         return False, f"An exception occurred: {str(e)}"
 
 
-def get_events_for_artist(artist_ids):
+def get_events_for_artist(request):
     """
-    Queries events for given artists from the 'events' table in the Supabase database.
+    Queries all events for a given artist from the 'events' table in the Supabase database using a request JSON structure.
 
     Args:
-        artist_ids (list of str): A list of artist_id values, each a UUID string.
-
-    Returns:
-        A tuple containing a boolean indicating success, and either the list of events or an error
-            message.
-    """
-    try:
-        # artist_ids is stored as an array of UUIDs in the database
-        result = (
-            supabase.table("events")
-            .select("*")
-            .filter("artist_ids", "cs", artist_ids)
-            .execute()
-        )
-
-        if result.error:
-            return (
-                False,
-                f"An error occurred while fetching events for artists: {result.error}",
-            )
-        else:
-            return True, result.data
-    except Exception as e:
-        return False, f"An exception occurred: {str(e)}"
-
-
-def get_events_for_attendee(attendee_id):
-    """
-    Queries events for a given attendee from the 'events' table in the Supabase database,
-    based on the tickets they have bought.
-
-    Args:
-        attendee_id (str): The unique identifier for the attendee.
+        request (dict): A dictionary containing 'object_type' and 'identifier' as the artist_id.
 
     Returns:
         A tuple containing a boolean indicating success, and either the list of events or an error message.
     """
+    # Extract artist_id from request
+    artist_id = request["identifier"]
+
     try:
-        # Fetch ticket IDs for the attendee
-        tickets_result = (
-            supabase.table("tickets")
-            .select("event_id")
-            .eq("attendee_id", attendee_id)
-            .execute()
-        )
+        # Call the RPC function with artist_id
+        result = supabase.rpc("get_events_for_artist", {"artist_id": artist_id})
 
-        if tickets_result.error:
-            return (
-                False,
-                f"An error occurred while fetching tickets for the attendee: {tickets_result.error}",
-            )
-
-        # Extract event IDs from tickets
-        event_ids = [ticket["event_id"] for ticket in tickets_result.data]
-
-        # Fetch events based on the event IDs
-        events_result = (
-            supabase.table("events").select("*").in_("event_id", event_ids).execute()
-        )
-
-        if events_result.error:
-            return (
-                False,
-                f"An error occurred while fetching events for the attendee: {events_result.error}",
-            )
+        if hasattr(result, 'error') and result.error:
+            return False, f"An error occurred while fetching events: {result.error}"
+        elif not result.data:
+            return False, "No events found for the provided artist ID."
         else:
-            return True, events_result.data
+            return True, result.data
     except Exception as e:
         return False, f"An exception occurred: {str(e)}"
 
 
-# def fetch_events_near_postcode(postcode, max_distance)
-#       Use an API, e.g. Google Maps, to identify which events are near the user
+def get_events_for_attendee(request):
+    """
+    Queries all events for a given attendee from the 'events' table in the Supabase database using a request JSON structure.
+
+    Args:
+        request (dict): A dictionary containing 'object_type', 'identifier' as the attendee_id.
+
+    Returns:
+        A tuple containing a boolean indicating success, and either the list of events and tickets or an error message.
+    """
+    # Extract attendee_id from request
+    attendee_id = request["identifier"]
+
+    try:
+        # Call the RPC function with attendee_id
+        result = supabase.rpc("get_events_for_attendee", {"attendee_id": attendee_id})
+
+        if hasattr(result, 'error') and result.error:
+            return False, f"An error occurred while fetching events: {result.error}"
+        elif not result.data:
+            return False, "No events found for the provided attendee ID."
+        else:
+            return True, result.data
+    except Exception as e:
+        return False, f"An exception occurred: {str(e)}"
 
 
-# Finish setting up app routes
+def get_events_in_city(request):
+    """
+    Queries all events in a specified city from the 'events' table in the Supabase database using a request JSON structure.
+
+    Args:
+        request (dict): A dictionary containing 'object_type' and 'identifier' as the city name.
+
+    Returns:
+        A tuple containing a boolean indicating success, and either the list of events or an error message.
+    """
+    # Extract city name from request
+    city_name = request["identifier"]
+
+    try:
+        # Call the RPC function with city_name
+        result = supabase.rpc("get_events_in_city", {"city_name": city_name})
+
+        if hasattr(result, 'error') and result.error:
+            return False, f"An error occurred while fetching events: {result.error}"
+        elif not result.data:
+            return False, "No events found in the specified city."
+        else:
+            return True, result.data
+    except Exception as e:
+        return False, f"An exception occurred: {str(e)}"
 
 
 @functions_framework.http
@@ -279,7 +360,6 @@ def api_create_event(request):
         return jsonify({"message": message}), 200
     else:
         return jsonify({"error": message}), 400
-
 
 @functions_framework.http
 def api_update_event(request):
@@ -294,7 +374,6 @@ def api_update_event(request):
     else:
         return jsonify({"error": message}), 400
 
-
 @functions_framework.http
 def api_delete_event(request):
     request_data = request.json
@@ -303,7 +382,6 @@ def api_delete_event(request):
         return jsonify({"message": message}), 200
     else:
         return jsonify({"error": message}), 400
-
 
 @functions_framework.http
 def api_get_event_info(request):
@@ -333,6 +411,41 @@ def api_get_event_info(request):
 
     return jsonify(result), 200
 
+@functions_framework.http
+def api_get_events_for_venue(request):
+    request_data = request.json
+    success, message = get_events_for_venue(request_data)
+    if success:
+        return jsonify({"message": message}), 200
+    else:
+        return jsonify({"error": message}), 400
+
+@functions_framework.http
+def api_get_events_in_city(request):
+    request_data = request.json
+    success, message = get_events_in_city(request_data)
+    if success:
+        return jsonify({"message": message}), 200
+    else:
+        return jsonify({"error": message}), 400
+
+@functions_framework.http
+def api_get_events_for_artist(request):
+    request_data = request.json
+    success, message = get_events_for_artist(request_data)
+    if success:
+        return jsonify({"message": message}), 200
+    else:
+        return jsonify({"error": message}), 400
+
+@functions_framework.http
+def api_get_events_for_attendee(request):
+    request_data = request.json
+    success, message = get_events_for_attendee(request_data)
+    if success:
+        return jsonify({"message": message}), 200
+    else:
+        return jsonify({"error": message}), 400
 
 if __name__ == "__main__":
     app.run(debug=True)
