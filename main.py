@@ -207,33 +207,29 @@ def get_event_info(request):
         attributes or an error message.
     """
     event_id = request["identifier"]
+    object_type = request["object_type"]
     attributes_to_check = request["attributes"]
 
-    try:
-        # Construct a list of attributes to select based on the boolean value
-        selected_attributes = ", ".join(
-            [attr for attr, include in attributes_to_check.items() if include]
-        )
-        if not selected_attributes:
-            selected_attributes = (
-                "*"  # Fallback to select all if no attributes are marked as True
-            )
+    attributes_to_fetch = [
+        attr for attr, include in request.get("attributes", {}).items() if include
+    ]
 
-        result = (
-            supabase.table("events")
-            .select(selected_attributes)
+    try:
+        data = (
+            supabase.table(object_type + "s")
+            .select(", ".join(attributes_to_fetch))
             .eq("event_id", event_id)
             .execute()
         )
-
-        if result.error:
-            return False, f"An error occurred while fetching the event: {result.error}"
-        elif len(result.data) == 0:
-            return False, "No event found with the provided ID."
+        if data.data:
+            return True, {
+                "message": "Event found",
+                "data": data.data[0],
+            }
         else:
-            return True, result.data[0]
+            return False, {"message": "Event not found", "data": []}
     except Exception as e:
-        return False, f"An exception occurred: {str(e)}"
+        return False, {"message": f"An API error occurred: {str(e)}", "data": []}
 
 
 def get_events_for_venue(request):
@@ -282,14 +278,17 @@ def get_events_for_artist(request):
         # Call the RPC function with artist_id
         result = supabase.rpc("get_events_for_artist", {"artist_id": artist_id})
 
-        if hasattr(result, "error") and result.error:
-            return False, f"An error occurred while fetching events: {result.error}"
-        elif not result.data:
-            return False, "No events found for the provided artist ID."
+        print(result)
+
+        if result.data:
+            return True, {
+                "message": "Events found",
+                "data": result.data[0],
+            }
         else:
-            return True, result.data
+            return False, {"message": "No events found", "data": []}
     except Exception as e:
-        return False, f"An exception occurred: {str(e)}"
+        return False, {"message": f"An API error occurred: {str(e)}", "data": []}
 
 
 def get_events_for_attendee(request):
@@ -458,3 +457,74 @@ def api_get_events_for_attendee(request):
 
 if __name__ == "__main__":
     app.run(debug=True)
+    # create_req = {
+    #     "function": "create",
+    #     "object_type": "event",
+    #     "identifier": "1234345256345635",
+    #     "attributes": {
+    #         "venue_id": "1234345256345635",
+    #         "event_name": "Yaml sesh",
+    #         "date_time": "24 March 2024",
+    #         "total_tickets": 1,
+    #         "sold_tickets": 0,
+    #         "artist_ids": ["105165436154430421986"],
+    #     },
+    # }
+    # id, message = create_event(create_req)
+    # print(id)
+    # print(message)
+    #
+    # get_req = {
+    #     "function": "get",
+    #     "object_type": "event",
+    #     "identifier": id,
+    #     "attributes": {
+    #         "venue_id": True,
+    #         "event_name": True,
+    #         "date_time": True,
+    #         "total_tickets": True,
+    #         "sold_tickets": True,
+    #         "artist_ids": True,
+    #     },
+    # }
+    # success, message = get_event_info(get_req)
+    # print(success)
+    # print(message)
+    #
+    # update_req = {
+    #     "function": "update",
+    #     "object_type": "event",
+    #     "identifier": id,
+    #     "attributes": {
+    #         "venue_id": "1234345256345635",
+    #         "event_name": "Yaml sesh 2.0",
+    #         "date_time": "2024-03-25T02:05:00+00:00",
+    #         "total_tickets": 1,
+    #         "sold_tickets": 0,
+    #         "artist_ids": ["105165436154430421986"],
+    #     },
+    # }
+    # id, message = update_event(update_req)
+    # print(id)
+    # print(message)
+    #
+    # delete_req = {
+    #     "function": "delete",
+    #     "object_type": "event",
+    #     "identifier": id,
+    #     "attributes": {},
+    # }
+    # id, message = delete_event(update_req)
+    # print(id)
+    # print(message)
+    #
+    # get_artist_events_req = {
+    #     "function": "get",
+    #     "object_type": "event",
+    #     "identifier": "105165436154430421986",
+    # }
+    # success, message = get_events_for_artist(get_artist_events_req)
+    # print(id)
+    # print(message)
+
+
