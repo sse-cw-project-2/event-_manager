@@ -256,7 +256,7 @@ def get_events_for_venue(request):
             if response.data:
                 return True, {"message": "Events found", "data": response.data}
             else:
-                return False, {"message": "No events found", "data": []}
+                return True, {"message": "No events found", "data": []}
         else:
             # Handle the case where 'data' attribute is missing or response is not as expected
             return False, {"message": "Unexpected response format", "data": []}
@@ -288,7 +288,7 @@ def get_events_for_artist(request):
             if response.data:
                 return True, {"message": "Events found", "data": response.data}
             else:
-                return False, {"message": "No events found", "data": []}
+                return True, {"message": "No events found", "data": []}
         else:
             # Handle the case where 'data' attribute is missing or response is not as expected
             return False, {"message": "Unexpected response format", "data": []}
@@ -322,7 +322,7 @@ def get_events_for_attendee(request):
             if response.data:
                 return True, {"message": "Events found", "data": response.data}
             else:
-                return False, {"message": "No events found", "data": []}
+                return True, {"message": "No events found", "data": []}
         else:
             # Handle the case where 'data' attribute is missing or response is not as expected
             return False, {"message": "Unexpected response format", "data": []}
@@ -359,7 +359,7 @@ def get_events_in_city(request):
             if response.data:
                 return True, {"message": "Events found", "data": response.data}
             else:
-                return False, {"message": "No events found", "data": []}
+                return True, {"message": "No events found", "data": []}
         else:
             # Handle the case where 'data' attribute is missing or response is not as expected
             return False, {"message": "Unexpected response format", "data": []}
