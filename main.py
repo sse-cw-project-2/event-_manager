@@ -365,7 +365,8 @@ def get_events_in_city(request):
 
 def get_cities_by_country(request):
     """
-    Queries all cities from the 'cities' table in the Supabase database for a given country using a request JSON structure.
+    Queries all cities from the 'cities' table in the Supabase database
+    for a given country using a request JSON structure.
 
     Args:
         request (dict): A dictionary containing 'object_type', 'identifier', and 'country' as the country name.
