@@ -342,9 +342,9 @@ def get_events_in_city(request):
         A tuple containing a boolean indicating success, and either the list of events or an error message.
     """
     # Extract city name from request
-    city_name = request["identifier"]
 
     try:
+        city_name = request.get("identifier")
         # Call the RPC function with city_name
         response = supabase.rpc(
             "get_events_in_city", {"city_name": city_name}
@@ -380,12 +380,13 @@ def get_cities_by_country(request):
         if not country_name:
             return False, {"message": "Country name is required", "data": []}
 
-        # Call the RPC function with country_name as a parameter, or directly query the 'cities' table
-        # This example assumes you're directly querying the table. If using RPC, adjust accordingly.
-        response = supabase.from_('cities').select('*').eq('country', country_name).execute()
+        response = supabase.from_('cities') \
+                           .select('*') \
+                           .eq('country', country_name) \
+                           .order('city', ascending=True) \
+                           .execute()
 
         if hasattr(response, "data") and response.data:
-            # Assuming 'response.data' contains the cities information
             cities = [city['city'] for city in response.data]  # Extracting city names
             return True, {"message": "Cities found", "data": cities}
         else:
