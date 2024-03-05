@@ -342,8 +342,12 @@ def get_events_in_city(request):
         A tuple containing a boolean indicating success, and either the list of events or an error message.
     """
     # Extract city name from request
-    city_name = request["identifier"]
-
+    try:
+        city_name = request.get('identifier', None)
+    except Exception as e:
+        return {"message": f"Error getting identifier: {e}", "data": []}
+    if not city_name:
+        return False, {"message": "City name is required", "data": []}
     try:
         # Call the RPC function with city_name
         response = supabase.rpc(
@@ -532,8 +536,8 @@ def api_get_cities_by_country(request):
 if __name__ == "__main__":
     req = {
         "function": "get",
-        "object_type": "event",
-        "identifier": "Davao"
+        "object_type": "city",
+        "identifier": "United States"
     }
-    print(get_events_in_city(req))
+    print(get_cities_by_country(req))
     # app.run(debug=True)
