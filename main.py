@@ -376,7 +376,7 @@ def get_cities_by_country(request):
     """
     try:
         # Extract the country from the request
-        country_name = request.get('country', None)
+        country_name = request.get('identifier', None)
         if not country_name:
             return False, {"message": "Country name is required", "data": []}
 
@@ -527,10 +527,11 @@ def api_get_cities_by_country(request):
 
 
 if __name__ == "__main__":
-    request = {
+    req = {
         "function": "get",
-        "country": "Australia"
+        "object_type": "city",
+        "country": "Japan"
     }
-    response = get_cities_by_country(request)
+    response = get_cities_by_country(req)
     print(response)
     # app.run(debug=True)
