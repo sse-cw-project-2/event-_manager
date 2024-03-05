@@ -516,13 +516,10 @@ def api_get_events_for_attendee(request):
 
 @functions_framework.http
 def api_get_cities_by_country(request):
-    if "function" not in request_data or request_data["function"] != "get":
-        return jsonify({"error": "API only handles get requests"}), 400
-    country = request.args.get("country")
     request_data = {
-        "function": "get",
-        "object_type": "city",
-        "identifier": country
+        "function": request.args.get("function"),
+        "object_type": request.args.get("object_type"),
+        "identifier": request.args.get("country"),
     }
     success, message = get_cities_by_country(request_data)
     if success:
@@ -532,10 +529,4 @@ def api_get_cities_by_country(request):
 
 
 if __name__ == "__main__":
-    req = {
-        "function": "get",
-        "object_type": "city",
-        "identifier": "Japan",
-    }
-    print(get_cities_by_country(req))
-    # app.run(debug=True)
+    app.run(debug=True)
