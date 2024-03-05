@@ -527,11 +527,4 @@ def api_get_cities_by_country(request):
 
 
 if __name__ == "__main__":
-    req = {
-        "function": "get",
-        "object_type": "city",
-        "country": "Japan"
-    }
-    response = get_cities_by_country(req)
-    print(response)
-    # app.run(debug=True)
+    app.run(debug=True)
