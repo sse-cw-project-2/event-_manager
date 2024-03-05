@@ -375,17 +375,12 @@ def get_cities_by_country(request):
         A tuple containing a boolean indicating success, and either the list of cities or an error message.
     """
     try:
-        # Extract the country from the request
         country_name = request.get('identifier', None)
         if not country_name:
             return False, {"message": "Country name is required", "data": []}
-
-        # Call the RPC function with country_name as a parameter, or directly query the 'cities' table
-        # This example assumes you're directly querying the table. If using RPC, adjust accordingly.
         response = supabase.from_('cities').select('*').eq('country', country_name).execute()
 
         if hasattr(response, "data") and response.data:
-            # Assuming 'response.data' contains the cities information
             cities = [city['city'] for city in response.data]  # Extracting city names
             return True, {"message": "Cities found", "data": cities}
         else:
@@ -488,11 +483,7 @@ def api_get_events_for_venue(request):
 
 @functions_framework.http
 def api_get_events_in_city(request):
-    request_data = {
-        "function": request.args.get("function"),
-        "object_type": request.args.get("object_type"),
-        "identifier": request.args.get("identifier"),
-    }
+    request_data = request.get_json()
     success, message = get_events_in_city(request_data)
     if success:
         return jsonify({"message": message}), 200
@@ -539,4 +530,10 @@ def api_get_cities_by_country(request):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    req = {
+        "function": "get",
+        "object_type": "event",
+        "identifier": "Davao"
+    }
+    print(get_events_in_city(req))
+    # app.run(debug=True)
