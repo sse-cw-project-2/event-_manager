@@ -474,7 +474,11 @@ def api_get_event_info(request):
 
 @functions_framework.http
 def api_get_events_for_venue(request):
-    request_data = request.json
+    request_data = {
+        "function": request.args.get("function"),
+        "object_type": request.args.get("object_type"),
+        "identifier": request.args.get("identifier"),
+    }
     success, message = get_events_for_venue(request_data)
     if success:
         return jsonify({"message": message}), 200
@@ -484,7 +488,11 @@ def api_get_events_for_venue(request):
 
 @functions_framework.http
 def api_get_events_in_city(request):
-    request_data = request.json
+    request_data = {
+        "function": request.args.get("function"),
+        "object_type": request.args.get("object_type"),
+        "identifier": request.args.get("identifier"),
+    }
     success, message = get_events_in_city(request_data)
     if success:
         return jsonify({"message": message}), 200
@@ -494,9 +502,11 @@ def api_get_events_in_city(request):
 
 @functions_framework.http
 def api_get_events_for_artist(request):
-    identifier = request.args.get("identifier")
-    object_type = request.args.get("object_type")
-    request_data = {"identifier": identifier, "object_type": object_type}
+    request_data = {
+        "function": request.args.get("function"),
+        "object_type": request.args.get("object_type"),
+        "identifier": request.args.get("identifier"),
+    }
     success, message = get_events_for_artist(request_data)
     if success:
         return jsonify({"message": message}), 200
