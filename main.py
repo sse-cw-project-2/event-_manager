@@ -389,7 +389,7 @@ def get_cities_by_country(request):
             return True, {"message": "Cities found", "data": cities}
         else:
             # Handle empty or unexpected response
-            return False, {"message": "No cities found or unexpected response format", "data": []}
+            return True, {"message": "No cities found or unexpected response format", "data": []}
     except Exception as e:
         # Handle exceptions, such as connection errors or query failures
         return False, {"message": f"An API error occurred: {str(e)}", "data": []}
@@ -534,10 +534,10 @@ def api_get_cities_by_country(request):
 
 
 if __name__ == "__main__":
-    req = {
+    req_ = {
         "function": "get",
-        "object_type": "city",
-        "identifier": "United States"
+        "object_type": "event",
+        "identifier": "Davao"
     }
-    print(get_cities_by_country(req))
+    print(get_events_in_city(req_))
     # app.run(debug=True)
