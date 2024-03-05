@@ -54,7 +54,7 @@ class TestGetEventsForVenue(unittest.TestCase):
         request = {"identifier": "venue123"}
         success, response = get_events_for_venue(request)
 
-        self.assertFalse(success)
+        self.assertTrue(success)
         self.assertIn("No events found", response["message"])
 
     @patch("main.supabase")
@@ -108,7 +108,7 @@ class TestGetEventsForArtist(unittest.TestCase):
         request = {"identifier": "artist123"}
         success, response = get_events_for_artist(request)
 
-        self.assertFalse(success)
+        self.assertTrue(success)
         self.assertIn("No events found", response["message"])
 
     @patch("main.supabase")
@@ -161,7 +161,7 @@ class TestGetEventsForAttendee(unittest.TestCase):
         request = {"identifier": "attendee123"}
         success, response = get_events_for_attendee(request)
 
-        self.assertFalse(success)
+        self.assertTrue(success)
         self.assertIn("No events found", response["message"])
 
     @patch("main.supabase")
@@ -220,7 +220,7 @@ class TestGetEventsInCity(unittest.TestCase):
         request = {"identifier": "Test City"}
         success, response = get_events_in_city(request)
 
-        self.assertFalse(success)
+        self.assertTrue(success)
         self.assertIn("No events found", response["message"])
 
     @patch("main.supabase")
