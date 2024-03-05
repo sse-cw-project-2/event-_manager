@@ -363,6 +363,38 @@ def get_events_in_city(request):
         return False, {"message": f"An API error occurred: {str(e)}", "data": []}
 
 
+def get_cities_by_country(request):
+    """
+    Queries all cities from the 'cities' table in the Supabase database for a given country using a request JSON structure.
+
+    Args:
+        request (dict): A dictionary containing 'object_type', 'identifier', and 'country' as the country name.
+
+    Returns:
+        A tuple containing a boolean indicating success, and either the list of cities or an error message.
+    """
+    try:
+        # Extract the country from the request
+        country_name = request.get('country', None)
+        if not country_name:
+            return False, {"message": "Country name is required", "data": []}
+
+        # Call the RPC function with country_name as a parameter, or directly query the 'cities' table
+        # This example assumes you're directly querying the table. If using RPC, adjust accordingly.
+        response = supabase.from_('cities').select('*').eq('country', country_name).execute()
+
+        if hasattr(response, "data") and response.data:
+            # Assuming 'response.data' contains the cities information
+            cities = [city['city'] for city in response.data]  # Extracting city names
+            return True, {"message": "Cities found", "data": cities}
+        else:
+            # Handle empty or unexpected response
+            return False, {"message": "No cities found or unexpected response format", "data": []}
+    except Exception as e:
+        # Handle exceptions, such as connection errors or query failures
+        return False, {"message": f"An API error occurred: {str(e)}", "data": []}
+
+
 @functions_framework.http
 def api_create_event(request):
     request_data = request.json
@@ -481,5 +513,23 @@ def api_get_events_for_attendee(request):
         return jsonify({"error": message}), 400
 
 
+@functions_framework.http
+def api_get_cities_by_country(request):
+    request_data = request.json
+    if "function" not in request_data or request_data["function"] != "get":
+        return jsonify({"error": "API only handles create requests"}), 400
+    success, message = get_cities_by_country(request_data)
+    if success:
+        return jsonify({"message": message}), 200
+    else:
+        return jsonify({"error": message}), 400
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    request = {
+        "function": "get",
+        "country": "Australia"
+    }
+    response = get_cities_by_country(request)
+    print(response)
+    # app.run(debug=True)
