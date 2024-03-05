@@ -75,7 +75,7 @@ attributes_schema = {
         "sold_tickets",
         "artist_ids",
     ],
-    "ticket": ["ticket_id", "event_id", "attendee_id", "price", "redeemed", "status"],
+    "ticket": ["ticket_id", "event_id", "attendee_id", "price", "status"],
 }
 # Attribute keys are paired with boolean values for get requests, or the value to be added to the
 # database otherwise.
