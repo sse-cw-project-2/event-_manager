@@ -28,14 +28,11 @@ app = Flask(__name__)
 load_dotenv()
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_KEY = os.environ["SUPABASE_KEY"]
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+app = Flask(__name__)
 
-# Schema for request validation
-object_types = ["venue", "artist", "attendee", "event", "ticket"]
-account_types = [ot for ot in object_types if ot not in ["event", "ticket"]]
-non_account_types = [ot for ot in object_types if ot not in account_types]
-attributes_schema = {
+# Create a Supabase client
+{
     "venue": [
         "user_id",
         "venue_name",
@@ -379,22 +376,17 @@ def get_cities_by_country(request):
         A tuple containing a boolean indicating success, and either the list of cities or an error message.
     """
     try:
-        country_name = request["identifier"]
+        country_name = request.get('identifier', None)
         if not country_name:
             return False, {"message": "Country name is required", "data": []}
-        response = (
-            supabase.from_("cities").select("*").eq("country", country_name).execute()
-        )
+        response = supabase.from_('cities').select('*').eq('country', country_name).execute()
 
         if hasattr(response, "data") and response.data:
-            cities = [city["city"] for city in response.data]  # Extracting city names
+            cities = [city['city'] for city in response.data]  # Extracting city names
             return True, {"message": "Cities found", "data": cities}
         else:
             # Handle empty or unexpected response
-            return True, {
-                "message": "No cities found or unexpected response format",
-                "data": [],
-            }
+            return True, {"message": "No cities found or unexpected response format", "data": []}
     except Exception as e:
         # Handle exceptions, such as connection errors or query failures
         return False, {"message": f"An API error occurred: {str(e)}", "data": []}
