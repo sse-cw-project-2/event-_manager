@@ -343,7 +343,7 @@ def get_events_in_city(request):
     """
     # Extract city name from request
     try:
-        city_name = request.get('identifier', None)
+        city_name = request.get("identifier", None)
     except Exception as e:
         return {"message": f"Error getting identifier: {e}", "data": []}
     if not city_name:
@@ -379,17 +379,22 @@ def get_cities_by_country(request):
         A tuple containing a boolean indicating success, and either the list of cities or an error message.
     """
     try:
-        country_name = request.get('identifier', None)
+        country_name = request["identifier"]
         if not country_name:
             return False, {"message": "Country name is required", "data": []}
-        response = supabase.from_('cities').select('*').eq('country', country_name).execute()
+        response = (
+            supabase.from_("cities").select("*").eq("country", country_name).execute()
+        )
 
         if hasattr(response, "data") and response.data:
-            cities = [city['city'] for city in response.data]  # Extracting city names
+            cities = [city["city"] for city in response.data]  # Extracting city names
             return True, {"message": "Cities found", "data": cities}
         else:
             # Handle empty or unexpected response
-            return False, {"message": "No cities found or unexpected response format", "data": []}
+            return False, {
+                "message": "No cities found or unexpected response format",
+                "data": [],
+            }
     except Exception as e:
         # Handle exceptions, such as connection errors or query failures
         return False, {"message": f"An API error occurred: {str(e)}", "data": []}
@@ -473,11 +478,7 @@ def api_get_event_info(request):
 
 @functions_framework.http
 def api_get_events_for_venue(request):
-    request_data = {
-        "function": request.args.get("function"),
-        "object_type": request.args.get("object_type"),
-        "identifier": request.args.get("identifier"),
-    }
+    request_data = request.json
     success, message = get_events_for_venue(request_data)
     if success:
         return jsonify({"message": message}), 200
@@ -497,11 +498,7 @@ def api_get_events_in_city(request):
 
 @functions_framework.http
 def api_get_events_for_artist(request):
-    request_data = {
-        "function": request.args.get("function"),
-        "object_type": request.args.get("object_type"),
-        "identifier": request.args.get("identifier"),
-    }
+    request_data = request.json
     success, message = get_events_for_artist(request_data)
     if success:
         return jsonify({"message": message}), 200
@@ -521,11 +518,7 @@ def api_get_events_for_attendee(request):
 
 @functions_framework.http
 def api_get_cities_by_country(request):
-    request_data = {
-        "function": request.args.get("function"),
-        "object_type": request.args.get("object_type"),
-        "identifier": request.args.get("country"),
-    }
+    request_data = request.json
     success, message = get_cities_by_country(request_data)
     if success:
         return jsonify({"message": message}), 200
@@ -534,10 +527,105 @@ def api_get_cities_by_country(request):
 
 
 if __name__ == "__main__":
-    req = {
-        "function": "get",
-        "object_type": "city",
-        "identifier": "United States"
-    }
-    print(get_cities_by_country(req))
+    req = {"function": "get", "object_type": "city", "identifier": "United States"}
+    success, message = get_cities_by_country(req)
+    print(success)
+    print(message)
     # app.run(debug=True)
+
+    create_req = {
+        "function": "create",
+        "object_type": "event",
+        "identifier": "1234345256345635",
+        "attributes": {
+            "venue_id": "1234345256345635",
+            "event_name": "Yaml sesh",
+            "date_time": "24 March 2024",
+            "total_tickets": 1,
+            "sold_tickets": 0,
+            "artist_ids": ["105165436154430421986"],
+        },
+    }
+    id, message = create_event(create_req)
+    print(id)
+    print(message)
+
+    get_artist_events_req = {
+        "function": "get",
+        "object_type": "event",
+        "identifier": "105165436154430421986",  # artist_id
+    }
+    success, message = get_events_for_artist(get_artist_events_req)
+    print(success)
+    print(message)
+
+    get_venue_events_req = {
+        "function": "get",
+        "object_type": "event",
+        "identifier": "1234345256345635",  # venue_id
+    }
+    success, message = get_events_for_venue(get_venue_events_req)
+    print(success)
+    print(message)
+
+    get_attendee_events_req = {
+        "function": "get",
+        "object_type": "event",
+        "identifier": "105165436154430421986",  # attendee_id
+    }
+    success, message = get_events_for_attendee(get_attendee_events_req)
+    print(success)
+    print(message)
+
+    get_city_events_req = {
+        "function": "get",
+        "object_type": "event",
+        "identifier": "Juliopolis",  # city_name
+    }
+    success, message = get_events_in_city(get_city_events_req)
+    print(success)
+    print(message)
+
+    get_req = {
+        "function": "get",
+        "object_type": "event",
+        "identifier": id,
+        "attributes": {
+            "venue_id": True,
+            "event_name": True,
+            "date_time": True,
+            "total_tickets": True,
+            "sold_tickets": True,
+            "artist_ids": True,
+        },
+    }
+    success, message = get_event_info(get_req)
+    print(success)
+    print(message)
+
+    update_req = {
+        "function": "update",
+        "object_type": "event",
+        "identifier": id,
+        "attributes": {
+            "venue_id": "1234345256345635",
+            "event_name": "Yaml sesh 2.0",
+            "date_time": "2024-03-25T02:05:00+00:00",
+            "total_tickets": 1,
+            "sold_tickets": 0,
+            "artist_ids": ["105165436154430421986"],
+        },
+    }
+    id, message = update_event(update_req)
+    print(id)
+    print(message)
+
+    delete_req = {
+        "function": "delete",
+        "object_type": "event",
+        "identifier": id,
+        "attributes": {},
+    }
+    id, message = delete_event(update_req)
+    print(id)
+    print(message)
