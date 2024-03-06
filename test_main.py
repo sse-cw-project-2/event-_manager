@@ -15,7 +15,7 @@
 
 
 import unittest
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, MagicMock
 
 from main import (
     get_events_for_venue,
@@ -25,6 +25,7 @@ from main import (
     get_event_info,
     delete_event,
     create_event,
+    apply_for_gig,
 )
 
 
@@ -357,6 +358,31 @@ class TestCreateEvent(unittest.TestCase):
 
         self.assertIsNone(event_id)
         self.assertIn("An exception occurred", message)
+
+
+class TestApplyForGig(unittest.TestCase):
+
+    @patch("main.supabase.rpc")
+    def test_apply_for_gig_success(self, mock_rpc):
+        # Mock RPC call to return a successful response
+        mock_response = MagicMock()
+        mock_response.data = True
+        mock_rpc.return_value.execute.return_value = mock_response
+
+        success, message = apply_for_gig("some-event-id", "some-user-id")
+
+        self.assertTrue(success)
+        self.assertEqual(message, "Application submitted successfully.")
+
+    @patch("main.supabase.rpc")
+    def test_apply_for_gig_rpc_exception(self, mock_rpc):
+        # Mock RPC call to raise an exception
+        mock_rpc.side_effect = Exception("Test exception")
+
+        success, message = apply_for_gig("some-event-id", "some-user-id")
+
+        self.assertFalse(success)
+        self.assertEqual(message, "An exception occurred: Test exception")
 
 
 if __name__ == "__main__":

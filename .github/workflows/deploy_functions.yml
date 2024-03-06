@@ -181,3 +181,14 @@ jobs:
           --entry-point api_get_cities_by_country \
           --set-secrets=SUPABASE_URL=projects/950999785047/secrets/SUPABASE_URL:latest \
           --set-secrets=SUPABASE_KEY=projects/950999785047/secrets/SUPABASE_KEY:latest
+
+      - name: Deploy api_apply_for_gig
+        run: |
+          gcloud functions deploy api_apply_for_gig \
+          --runtime python39 \
+          --trigger-http \
+          --allow-unauthenticated \
+          --source . \
+          --entry-point api_apply_for_gig \
+          --set-secrets=SUPABASE_URL=projects/950999785047/secrets/SUPABASE_URL:latest \
+          --set-secrets=SUPABASE_KEY=projects/950999785047/secrets/SUPABASE_KEY:latest
