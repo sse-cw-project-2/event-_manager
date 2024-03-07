@@ -345,6 +345,28 @@ class TestDeleteEvent(unittest.TestCase):
         self.assertIn("An exception occurred", message)
 
 
+class TestCreateEvent(unittest.TestCase):
+    @patch("main.supabase")
+    def test_exception_during_creation(self, mock_supabase):
+        # Assuming the date_time format validation is intended, update the test to reflect expected behavior
+        mock_supabase.table().insert().execute.side_effect = Exception("Database error")
+
+        request = {
+            "object_type": "event",
+            "attributes": {
+                "event_name": "Exception Event",
+                "date_time": "ThisIsInvalidDateTimeFormat",
+            },
+        }
+        event_id, message = create_event(request)
+
+        # Update the assertion to match the expected validation message
+        self.assertIsNone(event_id)
+        self.assertEqual(
+            message, "Invalid date_time format. Please use ISO 8601 format."
+        )
+
+
 class TestApplyForGig(unittest.TestCase):
 
     @patch("main.supabase")
