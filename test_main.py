@@ -15,7 +15,7 @@
 
 
 import unittest
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, Mock
 
 from main import (
     get_events_for_venue,
