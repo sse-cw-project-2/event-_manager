@@ -423,6 +423,37 @@ def apply_for_gig(event_id, user_id):
         return False, f"An exception occurred: {str(e)}"
 
 
+def handle_gig_application(event_id, user_id, accept=True):
+    """
+    Either accepts or rejects an artist's application for an event based on the 'accept' parameter.
+
+    Args:
+        event_id (str): The ID of the event.
+        user_id (str): The ID of the user (artist).
+        accept (bool): Whether to accept (True) or reject (False) the application.
+
+    Returns:
+        A tuple containing a boolean indicating success, and either a success message or an error message.
+    """
+    try:
+        response = supabase.rpc(
+            "handle_gig_application",
+            {
+                "target_event_id": event_id,
+                "applicant_user_id": user_id,
+                "accept_application": accept,
+            },
+        ).execute()
+        print(response)
+        if response.data:
+            action = "accepted" if accept else "rejected"
+            return True, f"Application {action} successfully."
+        else:
+            return False, "Failed to handle application."
+    except Exception as e:
+        return False, f"An exception occurred: {str(e)}"
+
+
 @functions_framework.http
 def api_create_event(request):
     request_data = request.json
@@ -559,7 +590,27 @@ def api_apply_for_gig(request):
     if not request_data["artist_id"]:
         return jsonify({"message": "Missing artist_id."}), 400
 
-    success, message = apply_for_gig(request_data["identifier"])
+    success, message = apply_for_gig(
+        request_data["identifier"], request_data["artist_id"]
+    )
+    if success:
+        return jsonify({"message": message}), 200
+    else:
+        return jsonify({"error": message}), 400
+
+
+@functions_framework.http
+def api_handle_gig_application(request):
+    request_data = request.json
+
+    if not request_data["identifier"]:
+        return jsonify({"message": "Missing event_id."}), 400
+    if not request_data["artist_id"]:
+        return jsonify({"message": "Missing artist_id."}), 400
+
+    success, message = handle_gig_application(
+        request_data["identifier"], request_data["artist_id"]
+    )
     if success:
         return jsonify({"message": message}), 200
     else:
@@ -669,3 +720,10 @@ def api_apply_for_gig(request):
 # id, message = delete_event(update_req)
 # print(id)
 # print(message)
+#
+# event_id = "67687038-1cd4-4151-9a59-657fc7198ad9"
+# user_id = "127409124712490421790"
+# acceptance = True
+#
+# print(apply_for_gig(event_id, user_id))
+# print(handle_gig_application(event_id, user_id, True))

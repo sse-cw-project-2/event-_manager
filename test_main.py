@@ -26,6 +26,7 @@ from main import (
     delete_event,
     create_event,
     apply_for_gig,
+    handle_gig_application,
 )
 
 
@@ -362,27 +363,91 @@ class TestCreateEvent(unittest.TestCase):
 
 class TestApplyForGig(unittest.TestCase):
 
-    @patch("main.supabase.rpc")
-    def test_apply_for_gig_success(self, mock_rpc):
-        # Mock RPC call to return a successful response
-        mock_response = MagicMock()
-        mock_response.data = True
-        mock_rpc.return_value.execute.return_value = mock_response
+    @patch("main.supabase")
+    def test_apply_for_gig_success(self, mock_supabase):
+        # Mock the response for a successful application
+        mock_response = mock_supabase.rpc.return_value.execute.return_value
+        mock_response.data = True  # Simulate successful data response
 
-        success, message = apply_for_gig("some-event-id", "some-user-id")
+        success, message = apply_for_gig("event_id_example", "user_id_example")
 
         self.assertTrue(success)
         self.assertEqual(message, "Application submitted successfully.")
 
-    @patch("main.supabase.rpc")
-    def test_apply_for_gig_rpc_exception(self, mock_rpc):
-        # Mock RPC call to raise an exception
-        mock_rpc.side_effect = Exception("Test exception")
+    @patch("main.supabase")
+    def test_apply_for_gig_failure(self, mock_supabase):
+        # Mock the response for a failed application
+        mock_response = mock_supabase.rpc.return_value.execute.return_value
+        mock_response.data = None  # Simulate failure or no data response
 
-        success, message = apply_for_gig("some-event-id", "some-user-id")
+        success, message = apply_for_gig("event_id_example", "user_id_example")
 
         self.assertFalse(success)
-        self.assertEqual(message, "An exception occurred: Test exception")
+        self.assertEqual(message, "Failed to submit application.")
+
+    @patch("main.supabase")
+    def test_apply_for_gig_exception(self, mock_supabase):
+        # Mock an exception being raised during the application
+        mock_supabase.rpc.return_value.execute.side_effect = Exception("Test exception")
+
+        success, message = apply_for_gig("event_id_example", "user_id_example")
+
+        self.assertFalse(success)
+        self.assertTrue("An exception occurred: Test exception" in message)
+
+
+class TestHandleGigApplication(unittest.TestCase):
+
+    @patch("main.supabase")
+    def test_handle_gig_application_accept_success(self, mock_supabase):
+        # Mock the response for a successful acceptance
+        mock_response = mock_supabase.rpc.return_value.execute.return_value
+        mock_response.data = True  # Simulate successful data response for acceptance
+
+        success, message = handle_gig_application(
+            "event_id_example", "user_id_example", accept=True
+        )
+
+        self.assertTrue(success)
+        self.assertEqual(message, "Application accepted successfully.")
+
+    @patch("main.supabase")
+    def test_handle_gig_application_reject_success(self, mock_supabase):
+        # Mock the response for a successful rejection
+        mock_response = mock_supabase.rpc.return_value.execute.return_value
+        mock_response.data = True  # Simulate successful data response for rejection
+
+        success, message = handle_gig_application(
+            "event_id_example", "user_id_example", accept=False
+        )
+
+        self.assertTrue(success)
+        self.assertEqual(message, "Application rejected successfully.")
+
+    @patch("main.supabase")
+    def test_handle_gig_application_failure(self, mock_supabase):
+        # Mock the response for a failed operation
+        mock_response = mock_supabase.rpc.return_value.execute.return_value
+        mock_response.data = None  # Simulate failure or no data response
+
+        success, message = handle_gig_application(
+            "event_id_example", "user_id_example", accept=True
+        )
+
+        self.assertFalse(success)
+        self.assertEqual(message, "Failed to handle application.")
+
+    @patch("main.supabase")
+    def test_handle_gig_application_exception(self, mock_supabase):
+        # Mock an exception being raised during the operation
+        mock_supabase.rpc.return_value.execute.side_effect = Exception("Test exception")
+
+        success, message = handle_gig_application(
+            "event_id_example", "user_id_example", accept=True
+        )
+
+        self.assertFalse(success)
+        self.assertTrue("An exception occurred: Test exception" in message)
 
 
 if __name__ == "__main__":

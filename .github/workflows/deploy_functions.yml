@@ -203,3 +203,14 @@ jobs:
           --entry-point api_update_event \
           --set-secrets=SUPABASE_URL=projects/950999785047/secrets/SUPABASE_URL:latest \
           --set-secrets=SUPABASE_KEY=projects/950999785047/secrets/SUPABASE_KEY:latest
+
+      - name: Deploy api_handle_gig_application
+        run: |
+          gcloud functions deploy api_handle_gig_application \
+          --runtime python39 \
+          --trigger-http \
+          --allow-unauthenticated \
+          --source . \
+          --entry-point api_handle_gig_application \
+          --set-secrets=SUPABASE_URL=projects/950999785047/secrets/SUPABASE_URL:latest \
+          --set-secrets=SUPABASE_KEY=projects/950999785047/secrets/SUPABASE_KEY:latest
