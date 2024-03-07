@@ -16,8 +16,9 @@
 ####################################################################################################
 
 
-from dateutil import parser
-from datetime import datetime, timezone
+from dateutil import parser  # type: ignore
+from datetime import datetime
+from dateutil.tz import tz
 from flask import Flask, jsonify
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -106,10 +107,11 @@ def create_event(request):
     event_datetime_str = attributes.get("date_time", "")
     try:
         event_datetime = parser.parse(event_datetime_str)
-        print(event_datetime)
+        current_datetime = datetime.now(tz.gettz("GMT"))
+        event_datetime_gmt = event_datetime.astimezone(tz.gettz("GMT"))
 
         # Check if the event date_time is in the future
-        if event_datetime <= datetime.now(timezone.utc):
+        if event_datetime_gmt <= current_datetime:
             return None, "Event date_time must be in the future."
 
     except ValueError:
@@ -650,7 +652,7 @@ create_req = {
     "attributes": {
         "venue_id": "1234345256345635",
         "event_name": "Yaml sesh",
-        "date_time": "2025-04-05T12:30:45Z",
+        "date_time": "2025-04-05T12:30:45",
         "total_tickets": 1,
         "sold_tickets": 0,
         "artist_ids": ["105165436154430421986"],
