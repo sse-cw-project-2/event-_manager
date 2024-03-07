@@ -14,7 +14,7 @@
 #        information, which may not be ideal for the front end. Also need to complete the api
 #        routes at the end of this file to be deployed.
 ####################################################################################################
-
+from datetime import datetime
 
 from flask import Flask, jsonify
 from supabase import create_client, Client
@@ -44,6 +44,7 @@ attributes_schema = {
         "city",
         "postcode",
         "bio",
+        "status",
     ],
     "artist": [
         "user_id",
@@ -55,6 +56,7 @@ attributes_schema = {
         "genres",
         "spotify_artist_id",
         "bio",
+        "status",
     ],
     "attendee": [
         "user_id",
@@ -65,6 +67,7 @@ attributes_schema = {
         "city",
         "postcode",
         "bio",
+        "status",
     ],
     "event": [
         "event_id",
@@ -74,6 +77,7 @@ attributes_schema = {
         "total_tickets",
         "sold_tickets",
         "artist_ids",
+        "status",
     ],
     "ticket": ["ticket_id", "event_id", "attendee_id", "price", "status"],
 }
@@ -95,6 +99,13 @@ def create_event(request):
     """
     attributes = request["attributes"]
     data_to_insert = {key: value for key, value in attributes.items()}
+
+    # Parse the date_time string into a datetime object
+    event_datetime_str = attributes.get("date_time", "")
+    try:
+        datetime.fromisoformat(event_datetime_str)
+    except ValueError:
+        return None, "Invalid date_time format. Please use ISO 8601 format."
 
     try:
         result, error = supabase.table("events").insert(data_to_insert).execute()
@@ -175,19 +186,19 @@ def delete_event(request):
     identifier = request["identifier"]  # Here this must be event_id
 
     try:
-        # Delete the record from the specified table
+        # Update the status of the specified event to 'Cancelled'
         result = (
             supabase.table(object_type + "s")
-            .delete()
+            .update({"status": "Cancelled"})
             .eq("event_id", identifier)
             .execute()
         )
 
         # Assuming result.data contains the number of deleted rows
         if result.data:
-            return True, "Event deletion was successful."
+            return True, "Event cancellation was successful."
         else:
-            return False, "Event not found or already deleted."
+            return False, "Event not found or already cancelled."
     except Exception as e:
         return False, f"An exception occurred: {str(e)}"
 
