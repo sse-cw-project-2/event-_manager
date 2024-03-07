@@ -14,7 +14,7 @@
 #        information, which may not be ideal for the front end. Also need to complete the api
 #        routes at the end of this file to be deployed.
 ####################################################################################################
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import Flask, jsonify
 from supabase import create_client, Client
@@ -103,7 +103,12 @@ def create_event(request):
     # Parse the date_time string into a datetime object
     event_datetime_str = attributes.get("date_time", "")
     try:
-        datetime.fromisoformat(event_datetime_str)
+        event_datetime = datetime.fromisoformat(event_datetime_str)
+
+        # Check if the event date_time is in the future
+        if event_datetime <= datetime.now(timezone.utc):
+            return None, "Event date_time must be in the future."
+
     except ValueError:
         return None, "Invalid date_time format. Please use ISO 8601 format."
 
