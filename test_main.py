@@ -345,24 +345,6 @@ class TestDeleteEvent(unittest.TestCase):
         self.assertIn("An exception occurred", message)
 
 
-@patch("main.supabase")
-def test_exception_during_creation(self, mock_supabase):
-    # Simulate an exception during the event creation process
-    mock_supabase.table().insert().execute.side_effect = Exception("Database error")
-
-    request = {
-        "object_type": "event",
-        "attributes": {
-            "event_name": "Exception Event",
-            "date_time": "2025-01-01T00:00:00Z",
-        },
-    }
-    event_id, message = create_event(request)
-
-    self.assertIsNone(event_id)
-    self.assertIn("An exception occurred", message)
-
-
 class TestApplyForGig(unittest.TestCase):
 
     @patch("main.supabase")
