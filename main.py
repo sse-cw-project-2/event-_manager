@@ -16,9 +16,8 @@
 ####################################################################################################
 
 
-from dateutil import parser  # type: ignore
 from datetime import datetime
-from dateutil.tz import tz
+from dateutil import parser, tz  # type: ignore
 from flask import Flask, jsonify
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -652,7 +651,7 @@ create_req = {
     "attributes": {
         "venue_id": "1234345256345635",
         "event_name": "Yaml sesh",
-        "date_time": "2025-04-05T12:30:45",
+        "date_time": "2024-03-28 21:13:00",
         "total_tickets": 1,
         "sold_tickets": 0,
         "artist_ids": ["105165436154430421986"],
