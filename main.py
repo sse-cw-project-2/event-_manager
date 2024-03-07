@@ -430,9 +430,9 @@ def api_create_event(request):
     if "function" not in request_data or request_data["function"] != "create":
         return jsonify({"error": "API only handles create requests"}), 400
 
-    success, message = create_event(request_data)
-    if success:
-        return jsonify({"message": message}), 200
+    event_id, message = create_event(request_data)
+    if event_id:
+        return jsonify({"message": message, "data": event_id}), 200
     else:
         return jsonify({"error": message}), 400
 
