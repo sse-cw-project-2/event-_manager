@@ -14,8 +14,10 @@
 #        information, which may not be ideal for the front end. Also need to complete the api
 #        routes at the end of this file to be deployed.
 ####################################################################################################
-from datetime import datetime, timezone
 
+
+from dateutil import parser
+from datetime import datetime, timezone
 from flask import Flask, jsonify
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -103,7 +105,8 @@ def create_event(request):
     # Parse the date_time string into a datetime object
     event_datetime_str = attributes.get("date_time", "")
     try:
-        event_datetime = datetime.fromisoformat(event_datetime_str)
+        event_datetime = parser.parse(event_datetime_str)
+        print(event_datetime)
 
         # Check if the event date_time is in the future
         if event_datetime <= datetime.now(timezone.utc):
@@ -640,22 +643,22 @@ def api_handle_gig_application(request):
 # print(message)
 # app.run(debug=True)
 #
-# create_req = {
-#     "function": "create",
-#     "object_type": "event",
-#     "identifier": "1234345256345635",
-#     "attributes": {
-#         "venue_id": "1234345256345635",
-#         "event_name": "Yaml sesh",
-#         "date_time": "24 March 2024",
-#         "total_tickets": 1,
-#         "sold_tickets": 0,
-#         "artist_ids": ["105165436154430421986"],
-#     },
-# }
-# id, message = create_event(create_req)
-# print(id)
-# print(message)
+create_req = {
+    "function": "create",
+    "object_type": "event",
+    "identifier": "1234345256345635",
+    "attributes": {
+        "venue_id": "1234345256345635",
+        "event_name": "Yaml sesh",
+        "date_time": "2025-04-05T12:30:45Z",
+        "total_tickets": 1,
+        "sold_tickets": 0,
+        "artist_ids": ["105165436154430421986"],
+    },
+}
+id, message = create_event(create_req)
+print(id)
+print(message)
 #
 # get_artist_events_req = {
 #     "function": "get",
